@@ -1,0 +1,14 @@
+GRASS 1 0 0 1 0 0 #def#$
+SAND 1 1 1 1 1 1 #def#$
+BRICK 2 0 2 0 2 0 #def#$
+STONE 2 1 2 1 2 1 #def#stone $
+WOOD 3 2 3 2 3 1 #def#$
+BWOOD 4 2 4 2 4 1 #def#$
+LEAF 3 0 3 0 3 0 #def#$
+BLEAF 4 0 4 0 4 0 #def#$
+WATER 0 2 0 2 0 2 #def#$
+ROCK 1 2 1 2 1 2 #def#$
+PLACE 0 3 0 3 0 3 #def#$
+BEDROCK 1 3 1 3 1 3 #def#$
+OLDR 2 2 2 2 2 2 #def#$
+GLASS 2 3 2 3 2 3 #def#&
