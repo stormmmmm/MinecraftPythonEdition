@@ -321,27 +321,25 @@ class Model:
         """ Initialize the world by placing all the blocks.
 
         """
-        n = 30  # size of the world
-        s = 1  # step size
+        world_size = 30  # size of the world
+        step_size = 1  # step size
         y = 0  # initial y height
         warns.maybe_unused(y)
         maxHeight = 30
-        gen = NoiseGen(generate(n, maxHeight))
-        n = n * 4
+        gen = NoiseGen(generate(world_size, maxHeight))
+        world_size = world_size * 4
+        start = 0
 
         # too lazy to do this properly lol
-        heightMap = [4]
-        for x in xrange(0, n, s):
-            for z in xrange(0, n, s):
-                heightMap.append(0)
-        for x in xrange(0, n, s):
-            for z in xrange(0, n, s):
-                heightMap[z + x * n] = int(gen.getHeight(x, z))
+        heightMap = {}
+        for x in xrange(start, world_size, step_size):
+            for z in xrange(start, world_size, step_size):
+                heightMap[z + x * world_size] = int(gen.getHeight(x, z))
 
         # Generate the world
-        for x in xrange(0, n, s):
-            for z in xrange(0, n, s):
-                h = heightMap[z + x * n]
+        for x in xrange(0, world_size, step_size):
+            for z in xrange(0, world_size, step_size):
+                h = heightMap[z + x * world_size]
                 if h < 17:
                     self.add_block((x, h, z), self.blocks["SAND"], immediate=True)
                     for y in range(h, 16):
@@ -382,9 +380,9 @@ class Model:
                         # self.add_block((x, y, z), OLDR, immediate=False)
         for i in range(CAVESNUM):
             looping = True
-            x = random.randint(0, n)
-            y = random.randint(0, n)
-            z = random.randint(0, n)
+            x = random.randint(0, world_size)
+            y = random.randint(0, world_size)
+            z = random.randint(0, world_size)
             tx = x + random.randint(-10, 11)
             ty = y + random.randint(-10, 11)
             tz = z + random.randint(-10, 11)
@@ -396,13 +394,13 @@ class Model:
                     looping = False
                 if tx == x:
                     tx = x + random.randint(-10, 11)
-                    tx = _bound(0, n, tx)
+                    tx = _bound(0, world_size, tx)
                 if ty == y:
                     ty = y + random.randint(-10, 11)
                     ty = _bound(0, 48, ty)
                 if tz == z:
                     tz = z + random.randint(-10, 11)
-                    tz = _bound(0, n, tz)
+                    tz = _bound(0, world_size, tz)
                 if x < tx:
                     x += 1
                 elif x > tx:
@@ -426,8 +424,8 @@ class Model:
                                         self.remove_block((x + xx, y + yy, z + zz), True)
                                     finally:
                                         pass
-                x = _bound(0, n, x)
-                z = _bound(0, n, z)
+                x = _bound(0, world_size, x)
+                z = _bound(0, world_size, z)
                 y = _bound(0, 50, y)
 
     def hit_test(self, position, vector, max_distance=6):

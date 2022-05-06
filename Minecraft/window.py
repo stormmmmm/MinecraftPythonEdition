@@ -11,7 +11,7 @@ from pyglet.gl import *
 from pyglet.sprite import Sprite
 from pyglet.window import key, mouse
 
-from command import MinecraftCommand
+from Minecraft.libs.command import MinecraftCommand
 from libs.Button import Button
 from model import cube_vertices, player, music_list, xrange, \
     FLYING_SPEED, WALKING_SPEED, TERMINAL_VELOCITY, GRAVITY, \
@@ -89,12 +89,12 @@ class Window(pyglet.window.Window):
         # Menu button's commands
         # key: command
         self.commands = MappingProxyType({
-            "exit": MinecraftCommand(self.exit, self),
-            "saves": MinecraftCommand(self.to_saves, self),
-            "main": MinecraftCommand(self.to_main, self),
-            "save": MinecraftCommand(self.save, self),
-            "load": MinecraftCommand(self.load, self),
-            "game": MinecraftCommand(self.to_game, self)
+            "exit": MinecraftCommand(self.exit),
+            "saves": MinecraftCommand(self.to_saves),
+            "main": MinecraftCommand(self.to_main),
+            "save": MinecraftCommand(self.save),
+            "load": MinecraftCommand(self.load),
+            "game": MinecraftCommand(self.to_game)
         })
 
         # Menus
@@ -155,6 +155,18 @@ class Window(pyglet.window.Window):
             9200: lambda: glClearColor(0.4, 0.50, 0.8, 1) and
                           glFogfv(GL_FOG_COLOR, (GLfloat * 4)(0.4, 0.50, 0.8, 1))
         })
+        self.run_symbols = MappingProxyType({
+            key.W: lambda: self.strafe.__setitem__(0, self.strafe[0] - 1),
+            key.S: lambda: self.strafe.__setitem__(0, self.strafe[0] + 1),
+            key.A: lambda: self.strafe.__setitem__(1, self.strafe[1] - 1),
+            key.D: lambda: self.strafe.__setitem__(1, self.strafe[1] + 1),
+        })
+        self.stop_symbols = MappingProxyType({
+            key.W: lambda: self.strafe.__setitem__(0, self.strafe[0] + 1),
+            key.S: lambda: self.strafe.__setitem__(0, self.strafe[0] - 1),
+            key.A: lambda: self.strafe.__setitem__(1, self.strafe[1] + 1),
+            key.D: lambda: self.strafe.__setitem__(1, self.strafe[1] - 1),
+        })
         #
         # self.inven_image = pyglet.image.load('textures/ui/inven.png')
         # This call schedules the `update()` method to be called
@@ -172,8 +184,11 @@ class Window(pyglet.window.Window):
         self.shown_menu = self.main_menu
 
     def exit(self):
-        warns.maybe_unused(self)
-        sys.exit(0)
+        try:
+            self.close()
+            sys.exit(0)
+        finally:
+            pass
 
     def save(self):
         if "save1" not in os.listdir("saves"):
@@ -274,9 +289,7 @@ class Window(pyglet.window.Window):
                 dx = math.cos(x_angle)
                 dz = math.sin(x_angle)
         else:
-            dy = 0.0
-            dx = 0.0
-            dz = 0.0
+            dy = dx = dz = 0.0
         return dx, dy, dz
 
     def set_time_world(self, time_):
@@ -293,7 +306,7 @@ class Window(pyglet.window.Window):
             player.queue(music_)
             player.play()
         if self.time_music == 21001:
-            time_music = 0
+            self.time_music = 0
         self.world_time_map.get(self.time_world, lambda: None)()
         if any(self.position) < -3:
             self.position = (0, 100, 0)
@@ -429,6 +442,7 @@ class Window(pyglet.window.Window):
             elif button == pyglet.window.mouse.LEFT and block:
                 texture = self.model.world[block]
                 warns.maybe_unused(texture)
+
                 self.model.remove_block(block, by_player=True)
                 sound_ = pyglet.media.load(f'sounds{os.sep}break.wav')
                 soundpl.queue(sound_)
@@ -495,15 +509,7 @@ class Window(pyglet.window.Window):
             Number representing any modifying keys that were pressed.
 
         """
-        if symbol == key.W:
-            self.strafe[0] -= 1
-        elif symbol == key.S:
-            self.strafe[0] += 1
-        elif symbol == key.A:
-            self.strafe[1] -= 1
-        elif symbol == key.D:
-            self.strafe[1] += 1
-        elif symbol == key.SPACE:
+        if symbol == key.SPACE:
             if self.dy == 0:
                 self.dy = JUMP_SPEED
         elif symbol == key.ESCAPE:
@@ -527,6 +533,8 @@ class Window(pyglet.window.Window):
         elif symbol == key.E:
             self.toggleInv = not self.toggleInv
             self.set_exclusive_mouse(not self.toggleInv)
+        else:
+            self.run_symbols.get(symbol, lambda: None)()
 
     def on_key_release(self, symbol, modifiers):
         """ Called when the player releases a key. See pyglet docs for key
@@ -542,15 +550,7 @@ class Window(pyglet.window.Window):
         """
         global flying
 
-        if symbol == key.W:
-            self.strafe[0] += 1
-        elif symbol == key.S:
-            self.strafe[0] -= 1
-        elif symbol == key.A:
-            self.strafe[1] += 1
-        elif symbol == key.D:
-            self.strafe[1] -= 1
-        elif symbol == key.F2:
+        if symbol == key.F2:
             file = str(random.randint(1, 99999999999999999999))
             f = open(f'screenshots{os.sep}{file}.png', "a")
             f.close()
@@ -558,6 +558,8 @@ class Window(pyglet.window.Window):
                 'screenshots/' + file + '.png')
         elif symbol == key.Y:
             self.time_world += 200
+        else:
+            self.stop_symbols.get(symbol, lambda: None)()
 
     def on_resize(self, width, height):
         """ Called when the window is resized to a new `width` and `height`.
@@ -634,7 +636,7 @@ class Window(pyglet.window.Window):
                 i.draw()
 
     def draw_focused_block(self):
-        """ Draw black edges around the block that is currently under the
+        """ Draw block edges around the block that is currently under the
         crosshairs.
 
         """
@@ -654,9 +656,8 @@ class Window(pyglet.window.Window):
         """
         x, y, z = self.position
 
-        self.label.text = 'Beta 0.0.4 Fps: %02d (%.2f, %.2f, %.2f) %d / %d' % (
-            pyglet.clock.get_fps(), x, y, z,
-            len(self.model._shown), len(self.model.world))
+        self.label.text = f'Beta 0.0.5 Fps: {pyglet.clock.get_fps()} ({x}, {y}, {z}) ' \
+                          f'{len(self.model._shown)} / {len(self.model.world)}'
         # Beta 0.0.4 Fps: %02d (%.2f, %.2f, %.2f) %d / %d
         self.label.draw()
 

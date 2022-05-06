@@ -10,6 +10,6 @@ class MinecraftCommand:
         self.executor = executor
         self.args: tuple = args
 
-    def execute(self):
-        f = self.executor
-        f(*self.args)
+    @staticmethod
+    def execute(executor, args: tuple):
+        executor(*args)

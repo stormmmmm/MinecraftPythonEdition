@@ -4,7 +4,7 @@ import pyglet
 from pyglet import image
 from pyglet.sprite import Sprite
 
-from command import MinecraftCommand
+from Minecraft.libs.command import MinecraftCommand
 
 
 class Button:
@@ -36,7 +36,7 @@ class Button:
                 if self.y < y < self.y + self.h:
                     self.on = True
                     self.draw()
-                    func.execute()
+                    MinecraftCommand.execute(func.executor, func.args)
         elif mode == -1:
             if self.x < x < self.x + self.w:
                 if self.y < y < self.y + self.h:
