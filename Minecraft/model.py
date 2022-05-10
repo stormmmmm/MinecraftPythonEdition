@@ -339,37 +339,37 @@ class Model:
         # Generate the world
         for x in xrange(0, world_size, step_size):
             for z in xrange(0, world_size, step_size):
-                h = heightMap[z + x * world_size]
-                if h < 17:
-                    self.add_block((x, h, z), self.blocks["SAND"], immediate=True)
-                    for y in range(h, 16):
+                height = heightMap[z + x * world_size]
+                if height < 17:
+                    self.add_block((x, height, z), self.blocks["SAND"], immediate=True)
+                    for y in range(height, 16):
                         self.add_block((x, y, z), self.blocks["WATER"], immediate=True)
-                    for y in xrange(h - 1, 0, -1):
+                    for y in xrange(height - 1, 0, -1):
                         self.add_block((x, y, z), self.blocks["STONE"], immediate=True)
                     continue
-                elif h < 18:
-                    self.add_block((x, h, z), self.blocks["SAND"], immediate=True)
+                elif height < 18:
+                    self.add_block((x, height, z), self.blocks["SAND"], immediate=True)
                 else:
-                    self.add_block((x, h, z), self.blocks["GRASS"], immediate=True)
-                for y in xrange(h - 1, 0, -1):
+                    self.add_block((x, height, z), self.blocks["GRASS"], immediate=True)
+                for y in xrange(height - 1, 0, -1):
                     self.add_block((x, y, z), self.blocks["STONE"], immediate=True)
                 # Maybe add tree at this (x, z)
-                if h > 10:
+                if height > 10:
                     if random.randrange(0, 1000000) > 999900:
                         cobblestone = 2
-                        for y in xrange(h + 0, h + cobblestone):
+                        for y in xrange(height + 0, height + cobblestone):
                             self.add_block((x, y, z), self.blocks["OLDR"], immediate=False)
-                if h > 20:
+                if height > 20:
                     if random.randrange(0, 1000) > 990:
                         treeHeight = random.randrange(3, 5)
                         # Tree trunk
                         GENERATABLETREES = [[self.blocks["WOOD"], self.blocks["BWOOD"]],
                                             [self.blocks["LEAF"], self.blocks["BLEAF"]]]
                         wind = random.randrange(0, len(GENERATABLETREES[0]))
-                        for y in xrange(h + 1, h + treeHeight):
+                        for y in xrange(height + 1, height + treeHeight):
                             self.add_block((x, y, z), GENERATABLETREES[0][wind], immediate=False)
                         # Tree leaves
-                        leafh = h + treeHeight
+                        leafh = height + treeHeight
                         for lz in xrange(z + -1, z + 2):
                             for lx in xrange(x + -1, x + 2):
                                 for ly in xrange(2):
@@ -421,6 +421,7 @@ class Model:
                             if math.sqrt(xx * xx + yy * yy) <= w and math.sqrt(xx * xx + zz * zz) <= w:
                                 if x + xx > 0 and y + yy > 0 and z + zz > 0:
                                     try:
+
                                         self.remove_block((x + xx, y + yy, z + zz), True)
                                     finally:
                                         pass
@@ -553,6 +554,25 @@ class Model:
             self._enqueue(self._show_block, position, texture)
 
     def _show_block(self, position, texture):
+        """ Private implementation of the `show_block()` method.
+
+        Parameters
+        ----------
+        position : tuple of len 3
+            The (x, y, z) position of the block to show.
+        texture : list of len 3
+            The coordinates of the texture squares. Use `tex_coords()` to
+            generate.
+
+        """
+        x, y, z = position
+        vertex_data = cube_vertices(x, y, z, 0.5)
+        texture_data = list(texture[0])
+        # create vertex list
+        # FIXME_ Maybe `add_indexed()` should be used instead
+        self._shown[position] = self.batch.add(24, GL_QUADS, self.atlases[texture[1]][0],
+                                               (f'v3f/static', vertex_data),
+                                               (f't2f/static', texture_data))
         """ Private implementation of the `show_block()` method.
 
         Parameters

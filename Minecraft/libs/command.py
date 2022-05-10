@@ -8,7 +8,7 @@ class MinecraftCommand:
         if not callable(executor):
             raise TypeError("'executor' field is not callable object")
         self.executor = executor
-        self.args: tuple = args
+        self.args = args
 
     @staticmethod
     def execute(executor, args: tuple):

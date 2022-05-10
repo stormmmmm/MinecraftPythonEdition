@@ -2,6 +2,7 @@ import math
 from array import array
 
 
+@DeprecationWarning
 class SinTable:
     def __init__(self):
         self.sin_table = array('f')
@@ -17,6 +18,7 @@ class SinTable:
             return math.sin(num)
 
 
+@DeprecationWarning
 class CosTable:
     def __init__(self):
         self.cos_table = array('f')
@@ -32,6 +34,7 @@ class CosTable:
             return math.sin(num)
 
 
+@DeprecationWarning
 class SinCosTable(SinTable, CosTable):
     def __init__(self):
         super(SinTable, self).__init__()
@@ -42,4 +45,3 @@ class SinCosTable(SinTable, CosTable):
 
     def get_cos(self, num: float):
         return super(CosTable).get(num)
-
